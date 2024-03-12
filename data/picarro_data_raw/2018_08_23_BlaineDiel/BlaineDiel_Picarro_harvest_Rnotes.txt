@@ -1,0 +1,21 @@
+Picarro Data Harvesting Run Specific Notes
+
+## Blaine Diel 2018-08-23
+
+## 2) Specify meta file name
+meta_file_name <- "2018_08_23_BlaineDiel.txt"
+## 3) Specify start time of Picarro run (using Picarro time)
+picarro_start_time <- "2018-08-24 01:00:00"
+## 4) Specify notes file name
+notes_file_name <- "2018_08_23_BlaineDiel_notes.txt"
+
+## Length of integration can be longer
+meta$ENDTIME<-meta$DATETIME+45
+
+## Get rid of sample #27
+subdat_rev <- subdat_rev[-which(subdat_rev$samplenum == 27),]
+
+
+
+
+

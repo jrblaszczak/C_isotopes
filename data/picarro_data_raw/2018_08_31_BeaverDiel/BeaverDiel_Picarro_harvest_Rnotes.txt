@@ -1,0 +1,20 @@
+Picarro Data Harvesting Run Specific Notes
+
+## 2) Specify meta file name
+meta_file_name <- "2018_08_31_BeaverDiel.txt"
+## 3) Specify start time of Picarro run (using Picarro time)
+picarro_start_time <- "2018-08-31 18:30:00"
+## 4) Specify notes file name
+notes_file_name <- "2018_08_31_BeaverDiel_notes.txt"
+
+## Beaver 2018-08-31
+
+## Samples #66, 37, 53, 54 need earlier start times
+meta[which(meta$samplenum == "66"),]$DATETIME <- "2018-08-31 21:26:00"
+meta[which(meta$samplenum == "37"),]$DATETIME <- "2018-08-31 20:14:09"
+meta[which(meta$samplenum == "53"),]$DATETIME <- "2018-08-31 20:54:48"
+meta[which(meta$samplenum == "54"),]$DATETIME <- "2018-08-31 20:57:08"
+
+## Start of integration could be 10 seconds sooner
+meta$STARTTIME <- meta$DATETIME-15
+meta$ENDTIME<-meta$DATETIME+40

@@ -1,0 +1,22 @@
+Picarro Data Harvesting Run Specific Notes
+
+## 2) Specify meta file name
+meta_file_name <- "2018_09_28_OakCreek.txt"
+## 3) Specify start time of Picarro run (using Picarro time)
+picarro_start_time <- "2018-09-28 20:19:00"
+## 4) Specify notes file name
+notes_file_name <- "2018_09_28_OakCreek_notes.txt"
+
+## Oak 2018-09-28
+
+## Samples that need later start times
+meta[which(meta$samplenum %in% c(4,6,9,11,14,16,70)),]$DATETIME <- meta[which(meta$samplenum %in% c(4,6,9,11,14,16,70)),]$DATETIME + 5
+
+## Samples that need earlier start times
+meta[which(meta$samplenum %in% c(49,83)),]$DATETIME <- meta[which(meta$samplenum %in% c(49,83)),]$DATETIME - 5
+
+## Averaging could last 5 seconds longer
+meta$ENDTIME<-meta$DATETIME+35
+
+## Get rid of samples #10, 50, 51
+subdat_rev <- subdat_rev[-which(subdat_rev$samplenum %in% c(10,50,51)),]
