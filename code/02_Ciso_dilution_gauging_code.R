@@ -32,35 +32,46 @@ lapply(c("plyr","dplyr","ggplot2","cowplot",
 ## Import & Visualize Data ##
 #############################
 
-# Iteratively import
-dat <- read.csv("../data/discharge_data_raw/2018_09_28_Cond_Pink_LolomaiOakCreek.csv", skip=1, header=T)
-#dat <- read.csv("2018_09_28_Cond_Yellow_WillowPtOakCreek.csv", skip=1, header=T)
-#dat <- read.csv("2018_08_28_Cond_Yellow_Blaine.csv", skip=1, header=T)
-#dat <- read.csv("2018_09_25_Cond_Pink_Beaver.csv", skip=1, header=T)
+# 1) Import and compile raw cond data
+setwd("../data/discharge_data_raw")
+raw_dat <- ldply(list.files(), function(filename) {
+  d <- read.csv(filename, skip=1, header=T)
+  d$file <- filename
+  d <- d[,c(2:5)]
+  colnames(d) <- c("DateTime","Cond","TempC","File")
+  d$DateTime <- as.POSIXct(as.character(d$DateTime), format="%m/%d/%y %H:%M:%S")
+  return(d)
+})
 
-names(dat)
+# Check
+sapply(raw_dat, class)
 
-# Subset
-dat <- dat[,c(2:4)]
-colnames(dat) <- c("DateTime","Cond","TempC")
-
-# Convert DateTime
-dat$DateTime <- as.POSIXct(as.character(dat$DateTime), format="%m/%d/%y %H:%M:%S")
-head(dat)
-sapply(dat, class)
+#################################################
+## Manually subset time frame based on plot and notes
+#################################################
+dat_l <- split(raw_dat, raw_dat$File)
 
 # Visualize
-ggplot(dat, aes(DateTime, Cond))+geom_point()
+ggplot(dat_l[[4]], aes(DateTime, Cond))+
+  geom_point()+
+  labs(title = dat_l[[4]]$File[1])
 
-## Subset based on plot
-dat <- subset(dat, DateTime >= as.POSIXct("2018-09-28 07:15:00") & DateTime <= as.POSIXct("2018-09-28 09:00:00")) # Lolomai
-#dat <- subset(dat, DateTime >= as.POSIXct("2018-09-28 09:00:00") & DateTime <= as.POSIXct("2018-09-28 10:14:00")) # Willow
-#dat <- subset(dat, DateTime >= as.POSIXct("2018-08-23 07:00:00") & DateTime <= as.POSIXct("2018-08-23 9:00:00")) # Blaine
-#dat <- subset(dat, DateTime >= as.POSIXct("2018-08-31 07:00:00") & DateTime <= as.POSIXct("2018-08-31 11:00:00")) # Beaver
-
-# for Blaine & Beaver
-#dat <- dat[1:100,] #Blaine
-#dat <- dat[1:200,] #Beaver
+#Oak Creek Lolomai
+dat_Lolomai <- subset(dat_l$`2018_09_28_Cond_Pink_LolomaiOakCreek.csv`,
+                      DateTime >= as.POSIXct("2018-09-28 07:15:00") & DateTime <= as.POSIXct("2018-09-28 09:00:00")) # Lolomai
+ggplot(dat_Lolomai, aes(DateTime, Cond))+geom_point()
+#Oak Creek Willow
+dat_Willow <- subset(dat_l$`2018_09_28_Cond_Yellow_WillowPtOakCreek.csv`,
+                     DateTime >= as.POSIXct("2018-09-28 09:00:00") & DateTime <= as.POSIXct("2018-09-28 10:14:00")) # Willow
+ggplot(dat_Willow, aes(DateTime, Cond))+geom_point()
+#Blaine
+dat_Blaine <- subset(dat_l$`2018_08_28_Cond_Yellow_Blaine.csv`,
+                     DateTime >= as.POSIXct("2018-08-23 07:00:00") & DateTime <= as.POSIXct("2018-08-23 9:00:00"))[1:100,] # Blaine
+ggplot(dat_Blaine, aes(DateTime, Cond))+geom_point()
+#Beaver
+dat_Beaver <- subset(dat_l$`2018_09_25_Cond_Pink_Beaver.csv`,
+                     DateTime >= as.POSIXct("2018-08-31 07:00:00") & DateTime <= as.POSIXct("2018-08-31 11:00:00"))[1:200,] # Beaver
+ggplot(dat_Beaver, aes(DateTime, Cond))+geom_point()
 
 
 ################
@@ -83,26 +94,24 @@ Qint<-function(time,cond, bkg, condmass){
 ## Select area before or after the salt wave which is constant
 ## for at least 30 minutes and take the average
 
-sub_bg <- subset(dat, DateTime >= as.POSIXct("2018-09-28 08:30:00") & DateTime <= as.POSIXct("2018-09-28 09:00:00")) #Lolomai
-#sub_bg <- subset(dat, DateTime >= as.POSIXct("2018-09-28 09:00:00") & DateTime <= as.POSIXct("2018-09-28 09:30:00")) #Willow
-#sub_bg <- subset(dat, DateTime >= as.POSIXct("2018-08-23 07:00:00") & DateTime <= as.POSIXct("2018-08-23 07:30:00")) #Blaine
-#sub_bg <- subset(dat, DateTime >= as.POSIXct("2018-08-31 07:30:00") & DateTime <= as.POSIXct("2018-08-31 08:00:00")) #Beaver
-
-bg_cond <- mean(sub_bg$Cond)
+bg_cond_Lolomai <- mean(subset(dat_Lolomai, DateTime >= as.POSIXct("2018-09-28 08:30:00") & DateTime <= as.POSIXct("2018-09-28 09:00:00"))$Cond) #Lolomai
+bg_cond_Willow <- mean(subset(dat_Willow, DateTime >= as.POSIXct("2018-09-28 09:00:00") & DateTime <= as.POSIXct("2018-09-28 09:30:00"))$Cond) #Willow
+bg_cond_Blaine <- mean(subset(dat_Blaine, DateTime >= as.POSIXct("2018-08-23 07:00:00") & DateTime <= as.POSIXct("2018-08-23 07:30:00"))$Cond) #Blaine
+bg_cond_Beaver <- mean(subset(dat_Beaver, DateTime >= as.POSIXct("2018-08-31 07:30:00") & DateTime <= as.POSIXct("2018-08-31 08:00:00"))$Cond) #Beaver
 
 ## (2) Estimate conductivity slug based on mass of Cl added
 ## 1 g salt in 1 L of water gives cond=2100 uS / cm
-Oak_Lolomai_Clmass <- 3000 # Oak @ Lolomai: 3.00 kg
-Oak_Willow_Clmass <- 7210 # Oak @ Willow: 7.21 kg
-Blaine_Clmass <- 1209 # Blaine: 1209 g
-Beaver_Clmass <- 2084 # Beaver: 2084 g
-
-Cond_mass <- 2100*Oak_Lolomai_Clmass ## *replace depending on calculation
+Oak_Lolomai_Cond_mass <- 2100*3000 # Oak @ Lolomai: 3.00 kg
+Oak_Willow_Cond_mass <- 2100*7210 # Oak @ Willow: 7.21 kg
+Blaine_Cond_mass <- 2100*1209 # Blaine: 1209 g
+Beaver_Cond_mass <- 2100*2084 # Beaver: 2084 g
 
 ## Calculate Q!
 ## Units = L/sec
-Q <- Qint(as.numeric(dat$DateTime), dat$Cond, bg_cond, Cond_mass)
-Q
+Q_Lolomai <- Qint(as.numeric(dat_Lolomai$DateTime), dat_Lolomai$Cond, bg_cond_Lolomai, Oak_Lolomai_Cond_mass)
+Q_Willow <- Qint(as.numeric(dat_Willow$DateTime), dat_Willow$Cond, bg_cond_Willow, Oak_Willow_Cond_mass)
+Q_Blaine <- Qint(as.numeric(dat_Blaine$DateTime), dat_Blaine$Cond, bg_cond_Blaine, Blaine_Cond_mass)
+Q_Beaver <- Qint(as.numeric(dat_Beaver$DateTime), dat_Beaver$Cond, bg_cond_Beaver, Beaver_Cond_mass)
 
 ## Summary
 ## Oak @ Lolomai: Q = 491.2901 L/sec (0.49 cms)
@@ -114,14 +123,10 @@ Q
 ## Estimate Velocity ##
 #######################
 
-inj_time <- as.POSIXct("2018-09-28 07:23:00") #Lolomai
-#inj_time <- as.POSIXct("2018-09-28 09:34:00") #Willow
-#inj_time <- as.POSIXct("2018-08-23 07:23:00") #Blaine
-#inj_time <- as.POSIXct("2018-08-31 07:23:00") # Beaver
-
-peak_time <- dat[which.max(dat$Cond),]$DateTime
-
-time_diff_sec <- as.numeric(peak_time - inj_time)*60
+inj_time_Lolomai <- as.POSIXct("2018-09-28 07:23:00") #Lolomai
+inj_time_Willow <- as.POSIXct("2018-09-28 09:34:00") #Willow
+inj_time_Blaine <- as.POSIXct("2018-08-23 07:23:00") #Blaine
+inj_time_Beaver <- as.POSIXct("2018-08-31 07:23:00") # Beaver
 
 ## Velocity = distance in meters/time in seconds
 
@@ -131,8 +136,11 @@ Oak_Willow_dist_upstream <- 150 # Oak @ Willow: 150 m upstream
 Blaine_dist_upstream <- 50 # Blaine: 50 m upstream
 Beaver_dist_upstream <- 217 # Beaver: 217 m upstream
 
-v <- Oak_Lolomai_dist_upstream/time_diff_sec ## *replace depending on calculation
-v
+v_Lolomai <- Oak_Lolomai_dist_upstream/(as.numeric(dat_Lolomai[which.max(dat_Lolomai$Cond),]$DateTime - inj_time_Lolomai)*60)
+v_Willow <- Oak_Willow_dist_upstream/(as.numeric(dat_Willow[which.max(dat_Willow$Cond),]$DateTime - inj_time_Willow)*60)
+v_Blaine <- Blaine_dist_upstream/(as.numeric(dat_Blaine[which.max(dat_Blaine$Cond),]$DateTime - inj_time_Blaine)*60)
+v_Beaver <- Beaver_dist_upstream/(as.numeric(dat_Beaver[which.max(dat_Beaver$Cond),]$DateTime - inj_time_Beaver)*60)
+
 
 ## Summary
 ## Oak @ Lolomai: 0.346 m/s
@@ -157,11 +165,11 @@ v
 # Blaine: 2.05
 # Beaver: 8.92  (from upstream of cattle crossing -- need better)
 
-w <- 8.6
-
 ## Calculate effective depth
-z <- (Q/1000)/(w*v)
-z
+z_Lolomai <- (Q_Lolomai/1000)/(8.6*v_Lolomai)
+z_Willow <- (Q_Willow/1000)/(11.8*v_Willow)
+z_Blaine <- (Q_Blaine/1000)/(2.05*v_Blaine)
+z_Beaver <- (Q_Beaver/1000)/(8.92*v_Beaver)
 
 ## Summary
 ## Oak @ Lolomai: 0.17 m
