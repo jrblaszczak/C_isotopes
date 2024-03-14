@@ -37,7 +37,7 @@ ggplot(dDO, aes(DateTime, oxy))+geom_line()+
   facet_wrap(~.id)
 
 ## Save compiled file
-write.csv(dDO, "../DO_continuous_data.csv")
+write.csv(dDO, "../processed_data/DO_continuous_data.csv")
 
 
 
