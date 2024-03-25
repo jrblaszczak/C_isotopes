@@ -1,13 +1,14 @@
-# Picarro data handling attempt.  Stealing from https://github.com/bpbond/R-data-picarro/blob/master/scripts/picarro.R
-library(plyr)
-library(dplyr)
-library(readr)     
-library(ggplot2)
-library(cowplot)
-library(reshape2)
-library(xts)
-library(dygraphs)
-library(tidyr)
+##==============================================================================
+## Project: CO2 isotopes
+## Script to convert data from the Picarro
+## Code authors: J.R. Blaszczak, R.O. Hall, Jr.
+##==============================================================================
+
+# Picarro data handling attempt. Based on: https://github.com/bpbond/R-data-picarro/blob/master/scripts/picarro.R
+
+## Import packages
+lapply(c("plyr","dplyr","readr","ggplot2","cowplot","reshape2",
+         "xts","dygraphs","lubridate","tidyverse"), require, character.only=T)
 
 ## Prior to running the rest of the code
 ## 1) Set the wd to folder location of the raw Picarro dat files and meta data
