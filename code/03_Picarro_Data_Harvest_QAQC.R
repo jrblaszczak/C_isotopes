@@ -13,11 +13,11 @@ lapply(c("plyr","dplyr","readr","ggplot2","cowplot","reshape2",
 ## Prior to running the rest of the code
 ## 1) Set the wd to folder location of the raw Picarro dat files and meta data
 ## 2) Specify meta file name
-meta_file_name <- "2018_09_28_OakCreek.txt"
-## 3) Specify start time of Picarro run (using Picarro time)
-picarro_start_time <- "2018-09-28 19:30:00"
+meta_file_name <- "2018_08_10_BeaverDiel.txt"
+## 3) Specify start time of Picarro run (using Picarro time -- look in the notes file for the run or subtract a few minutes from the first reset time)
+picarro_start_time <- "2018-08-10 21:30:00"
 ## 4) Specify notes file name
-notes_file_name <- "2018_09_28_OakCreek_notes.txt"
+notes_file_name <- "2018_08_10_BeaverDiel_notes.txt"
 
 ###########
 ## IMPORT
@@ -82,7 +82,7 @@ for(i in 1:length(meta$samplenum)){
 subdat <- bind_rows(subdat)
 
 ## Plot All Together
-subdat_melt <- melt(subdat[,4:9], id.vars=c("DATETIME","samplenum"))
+subdat_melt <- reshape2::melt(subdat[,4:9], id.vars=c("DATETIME","samplenum"))
 ggplot(subdat_melt, aes(DATETIME, value, color=samplenum))+
   geom_point()+
   facet_wrap(~variable, ncol=2, scales = "free")
@@ -99,13 +99,13 @@ vis <- function(d, subd, v){
   subd <- subd[,c("DATETIME",v,"samplenum")]
   comb <- merge(d, subd, by="DATETIME", all.x=T)
   colnames(comb) <- c("DateTime","All","Sub","samplenum")
-  comb.xts <- as.xts(comb, order.by=comb$DateTime)
+  comb.xts <- xts::as.xts(comb, order.by=comb$DateTime)
   
-  dygraph(comb.xts[,c("All","Sub","samplenum")]) %>%
-    dyAxis("y2", label = "samplenum", independentTicks = TRUE)%>%
-    dySeries("Sub", fillGraph = T)%>%
-    dySeries("samplenum", axis=('y2'))%>%
-    dyRangeSelector()
+  dygraphs::dygraph(comb.xts[,c("All","Sub","samplenum")]) %>%
+    dygraphs::dyAxis("y2", label = "samplenum", independentTicks = TRUE)%>%
+    dygraphs::dySeries("Sub", fillGraph = T)%>%
+    dygraphs::dySeries("samplenum", axis=('y2'))%>%
+    dygraphs::dyRangeSelector()
 }
 
 ## 13C-CO2
@@ -204,12 +204,6 @@ sum_file <- rbind(sumA[,1:17], sumB[,1:17], sumC[,1:17])
 names(sum_file)
 sum_file <- sum_file[,c(1:4,9:17)]
 colnames(sum_file)[9] <- "SampleID"
-
-
-
-
-
-
 
 
 

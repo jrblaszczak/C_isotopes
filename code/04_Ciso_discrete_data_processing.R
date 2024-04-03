@@ -11,7 +11,7 @@ lapply(c("plyr","dplyr","ggplot2","cowplot",
 ##############
 ## IMPORT
 ##############
-setwd("../data/discrete_data_raw")
+setwd("../data/processed_data")
 
 ## Import QAQC'd Picarro data
 dat <- ldply(list.files(pattern = "*_QAQC.csv"), function(filename) {
@@ -57,7 +57,7 @@ iso <- iso[order(iso$Site, iso$Date, iso$Time),]
 #################
 ## Export
 #################
-write.csv(iso, "../Discrete_data_allsites.csv")
+write.csv(iso, "Discrete_data_allsites.csv")
 
 
 
